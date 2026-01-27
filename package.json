@@ -1,0 +1,21 @@
+{
+  "name": "@store-system/store-system",
+  "version": "1.0.0",
+  "description": "Store management system monorepo",
+  "private": true,
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "type-check": "turbo run type-check",
+    "clean": "turbo run clean",
+    "install:all": "pnpm install"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.19.0",
+  "devDependencies": {
+    "turbo": "^2.7.6",
+    "typescript": "^5.7.3"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "@store-system/tsconfig",
+  "version": "1.0.0",
+  "description": "Shared TypeScript configurations for the monorepo",
+  "private": true,
+  "files": [
+    "*.json"
+  ]
+}

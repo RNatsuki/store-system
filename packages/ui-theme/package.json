@@ -1,0 +1,17 @@
+{
+  "name": "@store-system/ui-theme",
+  "version": "1.0.0",
+  "description": "Established theme styles for the store system UI components",
+  "main": "./scss/_index.scss",
+  "exports": {
+    ".": "./scss/_index.scss",
+    "./variables": "./scss/_variables.scss"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.19.0"
+}

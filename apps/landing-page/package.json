@@ -1,0 +1,21 @@
+{
+  "name": "@store-system/landing-page",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/vue": "^5.1.4",
+    "@store-system/ui-components": "workspace:*",
+    "@store-system/ui-theme": "workspace:*",
+    "astro": "^5.16.15",
+    "vue": "^3.5.27"
+  },
+  "devDependencies": {
+    "sass": "^1.97.3"
+  }
+}

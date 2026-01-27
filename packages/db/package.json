@@ -1,0 +1,30 @@
+{
+  "name": "@store-system/db",
+  "version": "1.0.0",
+  "description": "Database client and schemas for the store system",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.19.0",
+  "dependencies": {
+    "@store-system/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@store-system/tsconfig": "workspace:*",
+    "typescript": "^5.7.3"
+  }
+}
