@@ -1,0 +1,12 @@
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  password  String
+  role      String    @default("USER") // "USER" | "ADMIN" | "WAREHOUSE"
+  isActive  Boolean   @default(true)
+
+  // One-to-one relationship with Employee
+  employee  Employee?
+
+  @@map("users")
+}

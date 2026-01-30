@@ -1,0 +1,77 @@
+model Employee {
+  id             String   @id @default(uuid())
+  name           String
+  lastname       String
+  nss            String  @unique
+  rfc            String  @unique
+  address        String
+  salary         Float    @default(0.0)
+  vacationDays   Int      @default(0)
+  birthdate      DateTime
+  isRehired      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  // Connection with the user account
+  user           User     @relation(fields: [userId], references: [id])
+  userId         String   @unique
+
+  // Relations
+  sales          Sale[]
+  stockLogs      StockLog[]
+  transfers      Transfer[]
+  payrolls       Payroll[]
+  schedules      Schedule[]
+  timeOffs       TimeOff[]
+  discountsAuthorized Discount[]
+  refundsAuthorized   Refund[]
+
+  @@map("employees")
+}
+
+model Payroll {
+  id            String    @id @default(uuid())
+  period        String    // "2026-01", "2026-02", etc.
+  baseSalary    Float
+  bonuses       Float     @default(0.0)
+  deductions    Float     @default(0.0)
+  netSalary     Float
+  status        String    @default("PENDING") // "PENDING" | "PAID" | "CANCELLED"
+  paidAt        DateTime?
+  createdAt     DateTime  @default(now())
+
+  // Relations
+  employeeId    String
+  employee      Employee  @relation(fields: [employeeId], references: [id])
+
+  @@map("payrolls")
+}
+
+model Schedule {
+  id            String    @id @default(uuid())
+  dayOfWeek     Int       // 0=Sunday, 1=Monday, ..., 6=Saturday
+  startTime     String    // "09:00"
+  endTime       String    // "18:00"
+  isActive      Boolean   @default(true)
+
+  // Relations
+  employeeId    String
+  employee      Employee  @relation(fields: [employeeId], references: [id])
+
+  @@map("schedules")
+}
+
+model TimeOff {
+  id            String    @id @default(uuid())
+  startDate     DateTime
+  endDate       DateTime
+  type          String    // "VACATION" | "SICK" | "PERSONAL" | "UNPAID"
+  status        String    @default("PENDING") // "PENDING" | "APPROVED" | "REJECTED"
+  reason        String?
+  createdAt     DateTime  @default(now())
+
+  // Relations
+  employeeId    String
+  employee      Employee  @relation(fields: [employeeId], references: [id])
+
+  @@map("time_offs")
+}
