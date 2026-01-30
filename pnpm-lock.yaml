@@ -51,7 +51,29 @@ importers:
 
   apps/api: {}
 
-  apps/client:
+  apps/landing-page:
+    dependencies:
+      '@astrojs/vue':
+        specifier: ^5.1.4
+        version: 5.1.4(@types/node@24.10.9)(astro@5.16.15(@types/node@24.10.9)(rollup@4.56.0)(sass@1.97.3)(typescript@5.9.3))(rollup@4.56.0)(sass@1.97.3)(vue@3.5.27(typescript@5.9.3))
+      '@store-system/ui-components':
+        specifier: workspace:*
+        version: link:../../packages/ui-components
+      '@store-system/ui-theme':
+        specifier: workspace:*
+        version: link:../../packages/ui-theme
+      astro:
+        specifier: ^5.16.15
+        version: 5.16.15(@types/node@24.10.9)(rollup@4.56.0)(sass@1.97.3)(typescript@5.9.3)
+      vue:
+        specifier: ^3.5.27
+        version: 3.5.27(typescript@5.9.3)
+    devDependencies:
+      sass:
+        specifier: ^1.97.3
+        version: 1.97.3
+
+  apps/store-front:
     dependencies:
       '@store-system/ui-components':
         specifier: workspace:*
@@ -84,28 +106,6 @@ importers:
       vue-tsc:
         specifier: ^3.1.4
         version: 3.2.4(typescript@5.9.3)
-
-  apps/landing-page:
-    dependencies:
-      '@astrojs/vue':
-        specifier: ^5.1.4
-        version: 5.1.4(@types/node@24.10.9)(astro@5.16.15(@types/node@24.10.9)(rollup@4.56.0)(sass@1.97.3)(typescript@5.9.3))(rollup@4.56.0)(sass@1.97.3)(vue@3.5.27(typescript@5.9.3))
-      '@store-system/ui-components':
-        specifier: workspace:*
-        version: link:../../packages/ui-components
-      '@store-system/ui-theme':
-        specifier: workspace:*
-        version: link:../../packages/ui-theme
-      astro:
-        specifier: ^5.16.15
-        version: 5.16.15(@types/node@24.10.9)(rollup@4.56.0)(sass@1.97.3)(typescript@5.9.3)
-      vue:
-        specifier: ^3.5.27
-        version: 3.5.27(typescript@5.9.3)
-    devDependencies:
-      sass:
-        specifier: ^1.97.3
-        version: 1.97.3
 
   apps/warehouse-app:
     dependencies:
