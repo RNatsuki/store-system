@@ -1,0 +1,25 @@
+erDiagram
+    USER ||--|| EMPLOYEE : "has a profile in EMPLOYEE"
+
+    USER {
+        string id PK "UUID"
+        string email UK
+        string password "Hashed"
+        string rol "USER|ADMIN|WAREHOUSE"
+        bool isActive
+    }
+
+    EMPLOYEE {
+        string id PK "UUID"
+        string userId FK "Relation to USER"
+        string name
+        string lastname
+        string nss "Social Security Number"
+        string rfc UK "Tax ID MMexico"
+        string address "Full Address"
+        float salary "Base Salary"
+        int vacationDays "Available Days"
+        datetime birthdate "Date of Birth"
+        bool isRehired "Rehired"
+        datetime createdAt
+    }
