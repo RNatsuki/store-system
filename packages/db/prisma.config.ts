@@ -1,8 +1,12 @@
-import 'dotenv/config';
+import { config } from 'dotenv';
+import { resolve } from 'path';
 import { defineConfig } from 'prisma/config';
 
+// Load .env from monorepo root
+config({ path: resolve(__dirname, '../../.env') });
+
 export default defineConfig({
-  schema: './prisma/schema',  // Apunta al directorio, no a un archivo
+  schema: './prisma/schema',
   datasource: {
     url: process.env.DATABASE_URL || 'file:../../dev.db'
   },

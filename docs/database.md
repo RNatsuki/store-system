@@ -3,7 +3,7 @@
 This document describes the database setup using Prisma ORM v7 with a modular schema architecture in a monorepo structure.
 
 ## Overview
-The store-system uses SQLite as the database provider with Prisma ORM v7 for type-safe database access. The database is shared across all applications in the monorepo (Admin Panel, API, Store Front, and Warehouse App).
+The store-system uses SQLite as the database provider with Prisma ORM v7 for type-safe database access. The database is shared across all applications in the monorepo. The database schema is organized into multiple modular files for better maintainability.
 
 Related documentation:
 - [Database Models](./models.md) - Detailed model definitions and relationships
@@ -209,16 +209,38 @@ The `output` field is now required to specify where the client is generated.
 
 ## Common Commands
 
-### Development Workflow
+### Quick Start (Workspace Scripts)
+
+From the monorepo root, use these convenient scripts:
 
 ```bash
+# Generate Prisma Client after schema changes
+pnpm run -w db:generate
+
+# Create and apply migration
+pnpm run -w db:migrate
+
+# Open Prisma Studio (database GUI)
+pnpm run -w db:studio
+
+# Push schema changes without migration files (dev only)
+pnpm run -w db:push
+```
+
+### Direct Prisma Commands
+
+If you need more control or additional Prisma commands, navigate to the db package:
+
+```bash
+cd packages/db
+
 # Generate client after schema changes
 pnpm exec prisma generate
 
-# Create and apply migration
+# Create migration with custom name
 pnpm exec prisma migrate dev --name <migration_name>
 
-# Open Prisma Studio (database GUI)
+# Open Prisma Studio
 pnpm exec prisma studio
 
 # Reset database (WARNING: deletes all data)
@@ -226,6 +248,9 @@ pnpm exec prisma migrate reset
 
 # Format schema files
 pnpm exec prisma format
+
+# Check migration status
+pnpm exec prisma migrate status
 ```
 
 ### Production Deployment

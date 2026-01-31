@@ -1,25 +1,19 @@
+// packages/db/prisma/schema/auth.prisma
+
 model User {
   id                String    @id @default(uuid())
   email             String    @unique
   password          String
-
-  // "USER" | "ADMIN" | "WAREHOUSE"
   role              String    @default("USER")
-
-  // Employment status: true = Active employee | false = Resigned or Fired
   isActive          Boolean   @default(false)
+  isVerified        Boolean   @default(false)
 
-  // --- Verification Fields ---
-  // Null = Not verified. DateTime = Verification date.
-  emailVerified     DateTime?
-
-  // Unique token for email validation process
-  verificationToken String?   @unique
-
-  // Expiration date for the verification token
+  token             String?   @unique
   tokenExpires      DateTime?
 
-  // One-to-one relationship with the Employee profile (defined in hr.prisma)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
   employee          Employee?
 
   @@map("users")
