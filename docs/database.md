@@ -166,13 +166,13 @@ Prisma 7 requires explicit driver adapters for all databases. The client instant
 ```typescript
 import { PrismaClient } from '@prisma/client';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
-import Database from 'better-sqlite3';
 import path from 'path';
 
 // Uses process.cwd() for robust path resolution from monorepo root
 const rootPath = process.cwd();
 const dbPath = path.join(rootPath, 'dev.db');
-const db = new Database(dbPath);
+
+// The adapter manages the connection internally
 const adapter = new PrismaBetterSqlite3({ url: `file:${dbPath}` });
 
 export const prisma = new PrismaClient({
@@ -183,6 +183,8 @@ export const prisma = new PrismaClient({
 
 Key changes from Prisma 6:
 - No `datasourceUrl` option (use adapter)
+- Adapter handles database connection lifecycle internally
+- No need to manually create Database instance
 - Adapter wraps the database driver
 - Database path is resolved programmatically
 

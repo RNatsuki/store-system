@@ -1,12 +1,26 @@
 model User {
-  id        String    @id @default(uuid())
-  email     String    @unique
-  password  String
-  role      String    @default("USER") // "USER" | "ADMIN" | "WAREHOUSE"
-  isActive  Boolean   @default(true)
+  id                String    @id @default(uuid())
+  email             String    @unique
+  password          String
 
-  // One-to-one relationship with Employee
-  employee  Employee?
+  // "USER" | "ADMIN" | "WAREHOUSE"
+  role              String    @default("USER")
+
+  // Employment status: true = Active employee | false = Resigned or Fired
+  isActive          Boolean   @default(false)
+
+  // --- Verification Fields ---
+  // Null = Not verified. DateTime = Verification date.
+  emailVerified     DateTime?
+
+  // Unique token for email validation process
+  verificationToken String?   @unique
+
+  // Expiration date for the verification token
+  tokenExpires      DateTime?
+
+  // One-to-one relationship with the Employee profile (defined in hr.prisma)
+  employee          Employee?
 
   @@map("users")
 }

@@ -16,7 +16,9 @@
     "dev:landing": "pnpm --filter @store-system/landing-page dev",
     "db:generate": "pnpm --filter @store-system/db exec prisma generate",
     "db:migrate": "pnpm --filter @store-system/db exec prisma migrate dev",
-    "db:studio": "pnpm --filter @store-system/db exec prisma studio"
+    "db:studio": "pnpm --filter @store-system/db exec prisma studio",
+    "db:push": "pnpm --filter @store-system/db exec prisma db push"
+
   },
   "keywords": [],
   "author": "",

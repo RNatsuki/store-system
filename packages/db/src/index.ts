@@ -1,6 +1,5 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
-import Database from 'better-sqlite3';
 import path from 'path';
 
 /*
@@ -12,7 +11,8 @@ const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 // Usa process.cwd() para una resolución más robusta desde la raíz del monorepo
 const rootPath = process.cwd();
 const dbPath = path.join(rootPath, 'dev.db');
-const db = new Database(dbPath);
+
+// El adapter maneja la conexión internamente
 const adapter = new PrismaBetterSqlite3({ url: `file:${dbPath}` });
 
 export const prisma = globalForPrisma.prisma || new PrismaClient({
