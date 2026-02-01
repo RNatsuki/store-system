@@ -1,5 +1,7 @@
 # Sistema de Tienda Monorepo
 
+🦝 [English Documentation](./README.md)
+
 Sistema de gestión de tienda con múltiples aplicaciones y paquetes compartidos.
 
 ## Estructura del Proyecto
@@ -24,6 +26,7 @@ Sistema de gestión de tienda con múltiples aplicaciones y paquetes compartidos
 
 - [Configuración de Base de Datos](./docs/database.md) - Configuración de base de datos, configuración de esquemas y uso de Prisma ORM v7
 - [Modelos de Base de Datos](./docs/models.md) - Definiciones de modelos de datos y relaciones
+- [Documentación de la API](./docs/api/README.md) - Arquitectura, dependencias e hoja de ruta de implementación de la API Backend
 
 ## Inicio Rápido
 
