@@ -1,5 +1,7 @@
 # Store System Monorepo
 
+🇲🇽 [Documentación en Español](./README.es.md)
+
 Store management system with multiple applications and shared packages.
 
 ## Project Structure
@@ -15,7 +17,7 @@ Store management system with multiple applications and shared packages.
 ### Shared Packages (packages/)
 
 - **@store-system/types** - Shared TypeScript types across projects
-- **@store-system/db** - Prisma ORM v7 database client with SQLite and modular schemas
+- **@store-system/db** - Prisma ORM v7 database client with SQLite, modular schemas, and automatic password hashing
 - **@store-system/ui-components** - Reusable Vue component library
 - **@store-system/ui-theme** - Shared design tokens and styles (SCSS)
 - **@store-system/tsconfig** - Base TypeScript configurations for the monorepo
@@ -37,14 +39,20 @@ Store management system with multiple applications and shared packages.
 ```bash
 # Install all monorepo dependencies
 pnpm install
+```
+
+```bash
 
 # Build all shared packages
 pnpm build
 
+```
+
+```bash
 # Setup database (first time only)
-cd packages/db
-pnpm exec prisma generate
-pnpm exec prisma migrate dev --name init_auth_and_hr
+# Setup database (first time only)
+pnpm db:generate
+pnpm db:migrate --name init_auth_and_hr
 ```
 
 ### Available Commands
@@ -52,13 +60,19 @@ pnpm exec prisma migrate dev --name init_auth_and_hr
 ```bash
 # Development - Start all services in watch mode
 pnpm dev
+```
 
+```bash
 # Build - Build all packages and applications
 pnpm build
+```
 
+```bash
 # Type Check - Verify TypeScript types across the monorepo
 pnpm type-check
+```
 
+```bash
 # Clean - Remove all build artifacts
 pnpm clean
 ```
@@ -68,14 +82,34 @@ pnpm clean
 ```bash
 # Run individual applications (use -w flag to run from root)
 pnpm -w run dev:admin       # Admin Panel
-pnpm -w run dev:api         # API Server
-pnpm -w run dev:store       # Store Front (POS)
-pnpm -w run dev:warehouse   # Warehouse App
-pnpm -w run dev:landing     # Landing Page
+```
 
+```bash
+pnpm -w run dev:api         # API Server
+```
+
+```bash
+pnpm -w run dev:store       # Store Front (POS)
+```
+
+```bash
+pnpm -w run dev:warehouse   # Warehouse App
+```
+
+```bash
+pnpm -w run dev:landing     # Landing Page
+```
+
+```bash
 # Database quick commands
 pnpm -w run db:generate     # Generate Prisma Client
+```
+
+```bash
 pnpm -w run db:migrate      # Create and apply migration
+```
+
+```bash
 pnpm -w run db:studio       # Open Prisma Studio
 ```
 
@@ -102,17 +136,17 @@ The project uses Prisma ORM v7 with SQLite in a shared database architecture. Al
 
 ```bash
 # Generate Prisma Client
-cd packages/db
-pnpm exec prisma generate
+# Generate Prisma Client
+pnpm -w run db:generate
 
 # Create/apply migrations
-pnpm exec prisma migrate dev --name <migration_name>
+pnpm -w run db:migrate --name <migration_name>
 
 # Open database GUI
-pnpm exec prisma studio
+pnpm -w run db:studio
 
 # Reset database (deletes all data)
-pnpm exec prisma migrate reset
+pnpm --filter @store-system/db exec prisma migrate reset
 ```
 
 See [docs/database.md](./docs/database.md) for detailed setup instructions and Prisma 7 configuration details.
@@ -187,7 +221,7 @@ packages/types/
 The `@store-system/types` package provides common types:
 
 ```typescript
-import type { User, Product } from '@store-system/types';
+import type { User, Product } from "@store-system/types";
 ```
 
 ### Database Access
@@ -195,11 +229,11 @@ import type { User, Product } from '@store-system/types';
 The `@store-system/db` package provides type-safe database access:
 
 ```typescript
-import { prisma } from '@store-system/db';
+import { prisma } from "@store-system/db";
 
 // Type-safe queries with autocomplete
 const users = await prisma.user.findMany({
-  include: { employee: true }
+  include: { employee: true },
 });
 ```
 
@@ -210,7 +244,7 @@ All Prisma models are automatically typed and available across the monorepo.
 The `@store-system/ui-components` package exports Vue components:
 
 ```typescript
-import { Button } from '@store-system/ui-components';
+import { Button } from "@store-system/ui-components";
 ```
 
 ## Next Steps
@@ -265,6 +299,7 @@ Backend
 - **Database:** SQLite (development)
 - **ORM:** Prisma v7.3.0
 - **Database Driver:** better-sqlite3 with adapter pattern
+- **Security:** bcrypt for password hashing
 - **Schema:** Modular multi-file structure
 
 ### Development Tools

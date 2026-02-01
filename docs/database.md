@@ -3,9 +3,11 @@
 This document describes the database setup using Prisma ORM v7 with a modular schema architecture in a monorepo structure.
 
 ## Overview
+
 The store-system uses SQLite as the database provider with Prisma ORM v7 for type-safe database access. The database is shared across all applications in the monorepo. The database schema is organized into multiple modular files for better maintainability.
 
 Related documentation:
+
 - [Database Models](./models.md) - Detailed model definitions and relationships
 
 ## Architecture
@@ -59,11 +61,30 @@ pnpm install
 ```
 
 Required dependencies:
+
 - `@prisma/client@^7.3.0` - Prisma Client
 - `prisma@^7.3.0` - Prisma CLI
 - `@prisma/adapter-better-sqlite3` - SQLite adapter for Prisma 7
 - `better-sqlite3` - SQLite driver
 - `@types/better-sqlite3` - TypeScript types
+
+**Native Dependencies (pnpm Configuration)**
+
+To support native modules in pnpm v10+, the root [`package.json`](../package.json) includes a whitelist of allowed build scripts:
+
+```json
+"pnpm": {
+  "onlyBuiltDependencies": [
+    "better-sqlite3",
+    "bcrypt",
+    "prisma",
+    "@prisma/engines",
+    "esbuild",
+    "sharp",
+    "@parcel/watcher"
+  ]
+}
+```
 
 ### 2. Environment Configuration
 
@@ -89,21 +110,23 @@ dev.db-journal
 The `prisma.config.ts` file configures the Prisma CLI for Prisma 7:
 
 ```typescript
-import 'dotenv/config';
-import { defineConfig } from 'prisma/config';
+import "dotenv/config";
+import { defineConfig } from "prisma/config";
 
 export default defineConfig({
-  schema: './prisma/schema',        // Points to schema directory
+  schema: "./prisma/schema", // Points to schema directory
   datasource: {
-    url: process.env.DATABASE_URL || 'file:../../dev.db'
+    url: process.env.DATABASE_URL || "file:../../dev.db",
   },
   migrations: {
-    path: './prisma/migrations'
-  }
+    path: "./prisma/migrations",
+    seed: "tsx prisma/seed.ts",
+  },
 });
 ```
 
 Key points:
+
 - `schema` points to the directory containing modular `.prisma` files
 - `datasource.url` reads from environment or uses fallback path
 - Migrations are stored in `./prisma/migrations`
@@ -120,6 +143,7 @@ pnpm exec prisma generate
 ```
 
 This command:
+
 1. Reads all `.prisma` files from `prisma/schema/` directory
 2. Validates the schema and relationships
 3. Generates TypeScript types and client code
@@ -135,6 +159,7 @@ pnpm exec prisma migrate dev --name init_auth_and_hr
 ```
 
 This command:
+
 1. Creates `dev.db` at the monorepo root
 2. Generates a new migration in `prisma/migrations/`
 3. Applies the migration to the database
@@ -157,6 +182,30 @@ pnpm exec prisma db push
 
 **Warning**: This bypasses migration history and should only be used in early development.
 
+## Database Seeding
+
+The database includes a seed script to initialize essential data, such as the default admin user.
+
+### Configuration
+
+The seed command is configured in `prisma.config.ts` using `tsx` for direct TypeScript execution:
+
+```typescript
+migrations: {
+  seed: "tsx prisma/seed.ts";
+}
+```
+
+### Running the Seed
+
+You can run the seed command from the workspace root:
+
+```bash
+pnpm run -w db:seed
+```
+
+This executes `packages/db/prisma/seed.ts`.
+
 ## Prisma 7 Specifics
 
 ### Driver Adapter Pattern
@@ -164,24 +213,25 @@ pnpm exec prisma db push
 Prisma 7 requires explicit driver adapters for all databases. The client instantiation in `src/index.ts`:
 
 ```typescript
-import { PrismaClient } from '@prisma/client';
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
-import path from 'path';
+import { PrismaClient } from "@prisma/client";
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import path from "path";
 
 // Uses process.cwd() for robust path resolution from monorepo root
 const rootPath = process.cwd();
-const dbPath = path.join(rootPath, 'dev.db');
+const dbPath = path.join(rootPath, "dev.db");
 
 // The adapter manages the connection internally
 const adapter = new PrismaBetterSqlite3({ url: `file:${dbPath}` });
 
 export const prisma = new PrismaClient({
-    adapter,
-    log: ['query'],
+  adapter,
+  log: ["query"],
 });
 ```
 
 Key changes from Prisma 6:
+
 - No `datasourceUrl` option (use adapter)
 - Adapter handles database connection lifecycle internally
 - No need to manually create Database instance
@@ -225,6 +275,9 @@ pnpm run -w db:studio
 
 # Push schema changes without migration files (dev only)
 pnpm run -w db:push
+
+# Seed the database
+pnpm run -w db:seed
 ```
 
 ### Direct Prisma Commands
@@ -270,11 +323,11 @@ pnpm exec prisma generate
 In any app within the monorepo (`apps/api`, `apps/admin-panel`, etc.):
 
 ```typescript
-import { prisma } from '@store-system/db';
+import { prisma } from "@store-system/db";
 
 // Type-safe database operations
 const users = await prisma.user.findMany({
-  include: { employee: true }
+  include: { employee: true },
 });
 ```
 
@@ -282,11 +335,11 @@ const users = await prisma.user.findMany({
 
 See [models.md](./models.md) for detailed model definitions. Quick reference:
 
-| Module | Models |
-|--------|--------|
-| auth.prisma | User |
-| hr.prisma | Employee, Payroll, Schedule, TimeOff |
-| sales.prisma | Sale, SaleItem, Payment, Discount, Refund |
+| Module           | Models                                               |
+| ---------------- | ---------------------------------------------------- |
+| auth.prisma      | User                                                 |
+| hr.prisma        | Employee, Payroll, Schedule, TimeOff                 |
+| sales.prisma     | Sale, SaleItem, Payment, Discount, Refund            |
 | inventory.prisma | Product, StockLog, Warehouse, Transfer, TransferItem |
 
 ## Troubleshooting

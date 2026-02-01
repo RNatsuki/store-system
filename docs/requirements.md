@@ -18,7 +18,9 @@
 * [ ] User can check available days off
 * [ ] User can check overtime
 * [ ] User can check schedule
-* [ ] User can download payroll
+* [ ] User can download pa￼
+￼
+yroll
 
 ---
 

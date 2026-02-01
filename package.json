@@ -3,6 +3,17 @@
   "version": "1.0.0",
   "description": "Store management system monorepo",
   "private": true,
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "@prisma/engines",
+      "bcrypt",
+      "better-sqlite3",
+      "esbuild",
+      "prisma",
+      "sharp"
+    ]
+  },
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
@@ -17,8 +28,8 @@
     "db:generate": "pnpm --filter @store-system/db exec prisma generate",
     "db:migrate": "pnpm --filter @store-system/db exec prisma migrate dev",
     "db:studio": "pnpm --filter @store-system/db exec prisma studio",
-    "db:push": "pnpm --filter @store-system/db exec prisma db push"
-
+    "db:push": "pnpm --filter @store-system/db exec prisma db push",
+    "db:seed": "pnpm --filter @store-system/db exec prisma db seed"
   },
   "keywords": [],
   "author": "",

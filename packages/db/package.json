@@ -1,7 +1,8 @@
 {
   "name": "@store-system/db",
   "prisma": {
-    "schema": "./prisma/schema.prisma"
+    "schema": "./prisma/schema.prisma",
+    "seed": "ts-node prisma/seed.ts"
   },
   "version": "1.0.0",
   "description": "Database client and schemas for the store system",
@@ -35,6 +36,7 @@
     "better-sqlite3": "^12.6.2"
   },
   "devDependencies": {
+    "ts-node": "^10.9.2",
     "@store-system/tsconfig": "workspace:*",
     "@types/bcrypt": "^6.0.0",
     "@types/better-sqlite3": "^7.6.13",

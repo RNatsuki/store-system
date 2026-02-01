@@ -14,7 +14,6 @@ model Product {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
-  // Relations
   stockLogs     StockLog[]
   transfers     TransferItem[]
   saleItems     SaleItem[]
@@ -31,7 +30,6 @@ model StockLog {
   newStock      Int
   createdAt     DateTime    @default(now())
 
-  // Relations
   productId     String
   product       Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
 
@@ -51,7 +49,6 @@ model Warehouse {
   isActive      Boolean     @default(true)
   createdAt     DateTime    @default(now())
 
-  // Relations
   stockLogs     StockLog[]
   transfersFrom Transfer[]  @relation("TransferFrom")
   transfersTo   Transfer[]  @relation("TransferTo")
@@ -66,7 +63,6 @@ model Transfer {
   createdAt     DateTime      @default(now())
   completedAt   DateTime?
 
-  // Relations
   fromWarehouseId String
   fromWarehouse   Warehouse   @relation("TransferFrom", fields: [fromWarehouseId], references: [id])
 
@@ -85,7 +81,6 @@ model TransferItem {
   id          String    @id @default(uuid())
   quantity    Int
 
-  // Relations
   transferId  String
   transfer    Transfer  @relation(fields: [transferId], references: [id], onDelete: Cascade)
 
