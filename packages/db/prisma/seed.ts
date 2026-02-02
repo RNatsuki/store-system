@@ -1,4 +1,3 @@
-// packages/db/prisma/seed.ts
 import { join } from "path";
 import { config } from "dotenv";
 import { prisma } from "../src/index";
@@ -47,7 +46,7 @@ async function main() {
     },
   });
 
-  console.log(`✅ Seed ready: Admin ${firstAdmin.email} is set up.`);
+  console.log(`Seed ready: Admin ${firstAdmin.email} is set up.`);
 }
 
 main().catch((e) => {

@@ -1,16 +1,19 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
-import path from "path";
 import bcrypt from "bcrypt";
 
 /*
- * Singleton para evitar múltiples instancias de Prisma en desarrollo.
- * Usamos el tipo del cliente extendido para mantener el soporte de TypeScript.
+ * Singleton to avoid multiple instances of Prisma in development.
+ * We use the extended client type to maintain TypeScript support.
  */
 const globalForPrisma = globalThis as unknown as { prisma: any };
 
-// Adapter configuration for Better SQLite3a
-const dbPath = path.join(process.cwd(), "dev.db");
+import path from "path";
+
+const dbPath = path.resolve(__dirname, "../dev.db");
+
+console.log(`[StoreDB] Using database at: ${dbPath}`);
+
 const adapter = new PrismaBetterSqlite3({ url: `file:${dbPath}` });
 
 //  Base Prisma Instance
@@ -22,7 +25,7 @@ const basePrisma = new PrismaClient({
       : ["error"],
 });
 /**
- * ! Client extension to hash passwords automatically on create and update operations.
+ * *Client extension to hash passwords automatically on create and update operations.
  * @returns {PrismaClient} Extended Prisma Client with password hashing.
  */
 export const prisma = basePrisma.$extends({
@@ -56,7 +59,7 @@ export const prisma = basePrisma.$extends({
   },
 });
 
-// Singleton pattern for development
+//  Singleton pattern for development
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
 }
