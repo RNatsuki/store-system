@@ -27,6 +27,7 @@ Store management system with multiple applications and shared packages.
 - [Database Setup](./docs/database.md) - Database configuration, schema setup, and Prisma ORM v7 usage
 - [Database Models](./docs/models.md) - Data model definitions and relationships
 - [API Documentation](./docs/api/README.md) - Architecture, dependencies, and implementation roadmap of the Backend API
+- [Monorepo Audit Report (2026-02-02)](./docs/monorepo-audit-report.md) - Summary of configuration repairs and fixes
 
 ## Quick Start
 
