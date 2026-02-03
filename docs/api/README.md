@@ -10,6 +10,7 @@ This section contains the documentation for the backend API of the Store System.
 
 - [**Implementation Roadmap**](./implementation-roadmap.md)
   - Step-by-step guide to building the API Foundation
+  - Link to [detailed security documentation](./security.md).
   - Boilerplate, Security (CSRF), and Utilities
 
 - [**Dependencies**](./dependencies.md)

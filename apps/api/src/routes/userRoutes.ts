@@ -1,7 +1,9 @@
 import express, { Router } from "express";
-import { loginForm } from "../controllers/userController";
+import { loginForm, getCsrfToken } from "../controllers/userController";
 
 const userRouter: Router = express.Router();
+
+userRouter.get("/csrf-token", getCsrfToken);
 
 userRouter.post("/login", loginForm);
 
