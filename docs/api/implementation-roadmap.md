@@ -20,13 +20,15 @@ Your custom CSRF middleware needs to be compatible with TypeScript.
 
 - [x] Create `src/types/express.d.ts`.
 - [x] Extend the Express interface:
-  ```typescript
-  declare namespace Express {
-    export interface Request {
-      csrfToken?: string;
-    }
+
+```typescript
+declare namespace Express {
+  export interface Request {
+    csrfToken?: string;
   }
-  ```
+}
+```
+
 - [x] Implement the segmented CSRF logic:
   - `csrfMiddleware` (Token generation & cookie setting).
   - `verifyCsrfToken` (Header validation for mutations).
