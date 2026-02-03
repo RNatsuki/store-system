@@ -6,11 +6,33 @@ This document outlines the security measures implemented in the API, specificall
 
 We use a **Double Submit Cookie** pattern to protect against Cross-Site Request Forgery (CSRF) attacks.
 
-### Mechanism
+### Implementation Strategy
 
-1.  **HttpOnly Cookie**: When a user visits the site or hits the API, we set a `csrfToken` cookie. This cookie is `httpOnly`, meaning it **cannot** be read by JavaScript (preventing XSS attacks from stealing it).
-2.  **CSRF Header**: To validate the request, the client must send the _same_ token value in a custom header `x-csrf-token`.
-3.  **Validation**: The server compares the cookie value with the header value. If they match, the request is authorized.
+The logic is segmented into three specialized functions in `src/middleware/csrfMiddleware.ts`:
+
+1.  **`csrfMiddleware`**: The global initializer. It generates the token using `tokens.create(secret)` and sets it in a `httpOnly`, `secure`, `sameSite: lax` cookie.
+2.  **`verifyCsrfToken`**: The strict validator. It intercepts write methods (POST, PUT, DELETE, PATCH) and compares the cookie value against the `x-csrf-token` header.
+3.  **`rotateCsrfToken`**: The rotation utility. Used during critical events like **Login** to assign a new secret and token, mitigating Session Fixation attacks.
+
+### Validation Logic
+
+1.  **HttpOnly Cookie**: The server sets a `csrfToken` cookie (not accessible to JS).
+2.  **CSRF Header**: The client sends the token value in the `x-csrf-token` header.
+3.  **Verification**: The `verifyCsrfToken` middleware ensures they match before allowing the request to proceed.
+
+## Development & Testing (Postman)
+
+To facilitate API testing without a frontend, we use Postman scripts:
+
+1.  **Auto-Capture**: A Global Post-response script captures the `csrfToken` from the response body of `GET /auth/csrf-token` or valid login responses.
+    ```javascript
+    // Postman Tests tab
+    var jsonData = pm.response.json();
+    if (jsonData.csrfToken) {
+      pm.environment.set("csrfToken", jsonData.csrfToken);
+    }
+    ```
+2.  **Dynamic Header**: Requests validation via the `x-csrf-token` header set to `{{csrfToken}}`.
 
 ### Authentication Flow
 

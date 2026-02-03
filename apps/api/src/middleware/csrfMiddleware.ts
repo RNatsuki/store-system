@@ -1,135 +1,90 @@
+// apps/api/src/middleware/csrfMiddleware.ts
+import { Request, Response, NextFunction } from "express";
 import crypto from "crypto";
-import express from "express";
-/**
- * Genera un token CSRF aleatorio y seguro.
- *
- * @returns {string} Token CSRF de 48 caracteres hexadecimales.
- *
- * @example
- * ```ts
- * const token = generateCsrfToken();
- * console.log(token); // "..."
- * ```
- */
-const generateCsrfToken = () => {
-  return crypto.randomBytes(24).toString("hex");
-};
+
+// Constantes para evitar "magic strings"
+const CSRF_COOKIE_NAME = "csrfToken";
+const CSRF_HEADER_NAME = "x-csrf-token";
+const TOKEN_EXPIRATION = 3600000; // 1 hora
 
 /**
- * Middleware que genera o recupera el token CSRF y lo hace disponible en la solicitud.
- *
- * Si no existe un token en las cookies, genera uno nuevo y lo almacena.
- * El token se expone en `req.csrfToken` y `res.locals.csrfToken` para usarlo en las vistas.
- *
- * @param {express.Request} req - Objeto de solicitud de Express.
- * @param {express.Response} res - Objeto de respuesta de Express.
- * @param {express.NextFunction} next - Función para pasar al siguiente middleware.
- *
- * @example
- * Usar globalmente en la app:
- * ```ts
- * app.use(csrfMiddleware);
- * ```
+ * Genera un token criptográficamente fuerte de 32 bytes.
  */
-const csrfMiddleware = (
-  req: express.Request,
-  res: express.Response,
-  next: express.NextFunction,
+const generateToken = (): string => crypto.randomBytes(32).toString("hex");
+
+/**
+ * Middleware Global: Asegura que el cliente siempre tenga una cookie CSRF base.
+ * Se debe usar en app.use() antes de las rutas.
+ */
+export const csrfMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
 ) => {
-  if (!req.cookies.csrfToken) {
-    const csrfToken = generateCsrfToken();
-    res.cookie("csrfToken", csrfToken, {
-      httpOnly: true,
+  let token = req.cookies[CSRF_COOKIE_NAME];
+
+  if (!token) {
+    token = generateToken();
+    res.cookie(CSRF_COOKIE_NAME, token, {
+      httpOnly: true, // Impide acceso desde JS del cliente (XSS)
       secure: process.env.NODE_ENV === "production",
-      maxAge: 3600000, // 1 hour
+      sameSite: "lax", // Protege en navegaciones externas pero permite uso normal
+      maxAge: TOKEN_EXPIRATION,
     });
-    req.csrfToken = csrfToken;
-  } else {
-    req.csrfToken = req.cookies.csrfToken;
   }
-  res.locals.csrfToken = req.csrfToken;
-  next();
-};
 
-interface HttpError extends Error {
-  status?: number;
-}
-
-/**
- * Middleware que verifica la validez del token CSRF en solicitudes que modifican datos.
- *
- * Solo valida métodos: `POST`, `PUT`, `DELETE`, `PATCH`.
- * Compara el token de la cookie con el token enviado en el cuerpo (`_csrf`) o en el header (`x-csrf-token`).
- *
- * @param {express.Request} req - Objeto de solicitud de Express.
- * @param {express.Response} _res - Objeto de respuesta de Express (no utilizado).
- * @param {express.NextFunction} next - Función para pasar al siguiente middleware.
- * @throws {HttpError} Error 403 si el token CSRF no es válido o no coincide.
- *
- * @example
- * Proteger una ruta específica:
- * ```ts
- * app.post("/api/data", verifyCsrfToken, (req, res) => {
- *   res.send("Datos seguros");
- * });
- * ```
- */
-const verifyCsrfToken = (
-  req: express.Request,
-  _res: express.Response,
-  next: express.NextFunction,
-) => {
-  if (!["POST", "PUT", "DELETE", "PATCH"].includes(req.method)) {
-    return next();
-  }
-  const expectedToken = req.csrfToken;
-  const csrfTokenFromBody = req.body._csrf || req.headers["x-csrf-token"];
-
-  if (
-    !expectedToken ||
-    !csrfTokenFromBody ||
-    expectedToken !== csrfTokenFromBody
-  ) {
-    const error = new Error("Invalid or missing CSRF token") as HttpError;
-    error.status = 403;
-    return next(error);
-  }
+  // Hacemos el token disponible en el objeto Request gracias a tu express.d.ts
+  req.csrfToken = token;
+  res.locals.csrfToken = token;
   next();
 };
 
 /**
- * Middleware que regenera el token CSRF después de operaciones que modifican datos.
- *
- * Solo se ejecuta en métodos: `POST`, `PUT`, `DELETE`, `PATCH`.
- * Útil para prevenir ataques de reutilización de tokens (rotación de tokens) tras acciones sensibles como login.
- *
- * @param {express.Request} req - Objeto de solicitud de Express.
- * @param {express.Response} res - Objeto de respuesta de Express.
- * @param {express.NextFunction} next - Función para pasar al siguiente middleware.
- *
- * @example
- * Regenerar token tras login:
- * ```ts
- * app.post("/login", verifyCsrfToken, loginController, regenerateCsrfToken);
- * ```
+ * Middleware de Validación: Compara la cookie contra el header enviado por el cliente.
+ * Se aplica solo en rutas de escritura (POST, PUT, DELETE, PATCH).
  */
-const regenerateCsrfToken = (
-  req: express.Request,
-  res: express.Response,
-  next: express.NextFunction,
+export const verifyCsrfToken = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
 ) => {
-  if (!["POST", "PUT", "DELETE", "PATCH"].includes(req.method)) {
+  const protectedMethods = ["POST", "PUT", "DELETE", "PATCH"];
+
+  if (!protectedMethods.includes(req.method)) {
     return next();
   }
-  const newCsrfToken = generateCsrfToken();
-  res.cookie("csrfToken", newCsrfToken, {
+
+  const tokenFromCookie = req.cookies[CSRF_COOKIE_NAME];
+  const tokenFromRequest = req.headers[CSRF_HEADER_NAME] || req.body._csrf;
+
+  if (!tokenFromCookie || tokenFromCookie !== tokenFromRequest) {
+    return res.status(403).json({
+      errors: [{ msg: "Forbidden: Invalid or missing CSRF token" }],
+    });
+  }
+
+  next();
+};
+
+/**
+ * Middleware de Rotación: Genera un nuevo token tras un evento sensible (Login/Logout).
+ * Previene el ataque de 'Session Fixation'.
+ */
+export const rotateCsrfToken = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const newToken = generateToken();
+
+  res.cookie(CSRF_COOKIE_NAME, newToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    maxAge: 360000, // 1 hour
+    sameSite: "lax",
+    maxAge: TOKEN_EXPIRATION,
   });
-  req.csrfToken = newCsrfToken;
-  res.locals.csrfToken = newCsrfToken;
+
+  req.csrfToken = newToken;
+  res.locals.csrfToken = newToken;
   next();
 };
-
-export { csrfMiddleware, verifyCsrfToken, regenerateCsrfToken };

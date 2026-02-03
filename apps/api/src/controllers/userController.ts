@@ -1,48 +1,63 @@
 import { prisma } from "@store-system/db";
 import { Response, Request } from "express";
-import { check, validationResult } from "express-validator";
+import { validationResult } from "express-validator";
 import bcrypt from "bcrypt";
 
-const loginForm = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
-  await check("email").notEmpty().isEmail().run(req);
-  await check("password").notEmpty().run(req);
-
+export const loginForm = async (req: Request, res: Response) => {
+  // 1. extract errors that the router detected
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({
-      errors: [{ ...errors.array(), csrfToken: res.locals.csrfToken }],
+      errors: errors.array().map((err) => ({
+        msg: err.msg,
+        csrfToken: res.locals.csrfToken, // keep the token for retry
+      })),
     });
   }
-  const user = await prisma.user.findUnique({
-    where: {
-      email,
-    },
-  });
-  if (!user) {
-    return res.status(404).json({
-      errors: [{ msg: "User not found", csrfToken: res.locals.csrfToken }],
+
+  const { email, password } = req.body;
+
+  try {
+    // 2. auth logic
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      return res.status(404).json({
+        errors: [{ msg: "User not found", csrfToken: res.locals.csrfToken }],
+      });
+    }
+
+    if (!user.isVerified) {
+      return res.status(401).json({
+        errors: [
+          {
+            msg: "Account pending verification",
+            csrfToken: res.locals.csrfToken,
+          },
+        ],
+      });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        errors: [
+          { msg: "Invalid credentials", csrfToken: res.locals.csrfToken },
+        ],
+      });
+    }
+
+    // generation of JWT in the next step
+    return res.status(200).json({
+      msg: "Access granted",
+      csrfToken: res.locals.csrfToken,
     });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ msg: "Internal Server Error" });
   }
-  if (!user.isVerified) {
-    return res.status(401).json({
-      errors: [{ msg: "User not verified", csrfToken: res.locals.csrfToken }],
-    });
-  }
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) {
-    return res.status(401).json({
-      errors: [{ msg: "Invalid password XD", csrfToken: res.locals.csrfToken }],
-    });
-  }
-  return res.status(200).json({
-    msg: "User logged in successfully",
-    csrfToken: res.locals.csrfToken,
-  });
 };
 
-const getCsrfToken = (req: Request, res: Response) => {
+export const getCsrfToken = (req: Request, res: Response) => {
   res.json({ csrfToken: req.csrfToken });
 };
-
-export { loginForm, getCsrfToken };

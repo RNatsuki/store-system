@@ -8,18 +8,18 @@ This roadmap outlines the steps to build the API foundation, focusing on securit
 
 ### Step 1: Dependencies
 
-- [ ] Install all required dependencies (see [dependencies.md](./dependencies.md)).
+- [x] Install all required dependencies (see [dependencies.md](./dependencies.md)).
 
 ### Step 2: Architecture Setup
 
-- [ ] Create the folder structure defined in [architecture.md](./architecture.md).
+- [x] Create the folder structure defined in [architecture.md](./architecture.md).
 
 ### Step 3: Type Definitions & CSRF
 
 Your custom CSRF middleware needs to be compatible with TypeScript.
 
-- [ ] Create `src/types/express.d.ts`.
-- [ ] Extend the Express interface:
+- [x] Create `src/types/express.d.ts`.
+- [x] Extend the Express interface:
   ```typescript
   declare namespace Express {
     export interface Request {
@@ -27,19 +27,22 @@ Your custom CSRF middleware needs to be compatible with TypeScript.
     }
   }
   ```
-- [ ] Implement the CSRF middleware using strict types (`Request`, `Response`, `NextFunction`).
+- [x] Implement the segmented CSRF logic:
+  - `csrfMiddleware` (Token generation & cookie setting).
+  - `verifyCsrfToken` (Header validation for mutations).
+  - `rotateCsrfToken` (Session fixation protection).
 
 ### Step 4: Express Boilerplate (`server.ts`)
 
 Set up the main application entry point.
 
-- [ ] Initialize `express`.
-- [ ] Configure global middlewares:
+- [x] Initialize `express`.
+- [x] Configure global middlewares:
   - `helmet()` (Security headers)
   - `cors()` (Cross-origin requests)
   - `express.json()` (Body parsing)
   - `cookie-parser()` (Cookie parsing)
-- [ ] Inject your custom implementation of `csrfMiddleware`.
+- [x] Inject your custom implementation of `csrfMiddleware`.
 
 ### Step 5: Mailer Utility
 
@@ -49,11 +52,16 @@ Prepare the system for sending transactional emails (verification, reset passwor
 - [ ] specific SMTP transporter configuration.
 - [ ] Create a generic `sendEmail` function accepting `template`, `to`, and `subject`.
 
-### Step 6: Health Check & Verification
+### Step 6: Security Handshake
 
-- [ ] Create a simple "Health Check" route (e.g., `GET /api/health`).
-- [ ] Return the server status and the `csrfToken` in the response body.
-- [ ] **Verify:** Ensure the token is generated and cookies are being set correctly.
+- [x] Create the **Handshake Endpoint**: `GET /api/v1/auth/csrf-token`.
+- [x] Ensure it returns `{ csrfToken: "..." }`.
+- [ ] **Verify:** Use Postman to check that `httpOnly` cookie is set and token is returned.
+
+### Step 7: Validation Infrastructure
+
+- [x] Implement **Route-Level Validation** middleware (removing `.run(req)` from controllers).
+- [x] Refactor controllers to be **"Lean"** (business logic orchestration only).
 
 ---
 

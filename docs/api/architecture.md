@@ -25,8 +25,8 @@ apps/api/
 
 Controllers act as the entry point for requests. They bridge the gap between the HTTP layer and the business logic.
 
-- **Responsibility:** Validate inputs, call the appropriate service, and format the HTTP response.
-- **Rule:** Controllers should NOT contain business logic or direct database queries.
+- **Responsibility:** Orchestrate business logic and manage HTTP responses.
+- **Rule:** Controllers are "Lean". They should NOT contain validation logic (handled by route middleware) or direct database queries.
 
 ### 2. Services
 
