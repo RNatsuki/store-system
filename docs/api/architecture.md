@@ -27,6 +27,7 @@ Controllers act as the entry point for requests. They bridge the gap between the
 
 - **Responsibility:** Orchestrate business logic and manage HTTP responses.
 - **Rule:** Controllers are "Lean". They should NOT contain validation logic (handled by route middleware) or direct database queries.
+- **Refactorización 2026**: Los controladores se han limpiado completamente de lógica de validación, la cual ahora reside en los archivos de rutas como middleware.
 
 ### 2. Services
 
@@ -39,16 +40,41 @@ Services contain the core business logic of the application.
 
 Functions that run before the controller logic.
 
-- **Examples:** CSRF protection, JWT authentication, Request validation, Error logging.
+- **Examples:** 
+  - **CSRF Protection**: Triple-layer pattern (`csrfMiddleware`, `verifyCsrfToken`, `rotateCsrfToken`).
+  - **JWT Authentication**: `authenticate` middleware extracts and validates JWT from `httpOnly` cookies.
+  - **Request Validation**: `express-validator` rules applied at route level.
+  - **Error Logging**: Global error handler for consistent error responses.
+
+#### Middleware de Autenticación (authenticate)
+
+El middleware `authenticate` actúa como el "portero" de la API:
+
+1. **Extracción**: Lee la cookie `token` del request.
+2. **Validación**: Verifica la firma JWT usando `jsonwebtoken` y `JWT_SECRET`.
+3. **Inyección**: Añade el objeto `user` (id, email, role) al `req` de Express.
+4. **Protección**: Bloquea el acceso si el token es inválido o ha expirado.
 
 ### 4. Utils
 
 Helper functions and shared utilities.
 
-- **Examples:** `mailer.ts` (Nodemailer wrapper), `jwt.ts` (Token generation), built-in validators.
+- **Examples:** 
+  - `mailer.ts`: Nodemailer wrapper for transactional emails.
+  - `jwt.ts`: Centralized JWT signing and verification using `JWT_SECRET` and configurable expiration times.
+  - Built-in validators for common patterns.
 
 ### 5. Config
 
 Centralized configuration management.
 
-- **Purpose:** Store environment variables (e.g., specific ports, API keys) and validation logic to fail fast if configuration is missing.
+- **Purpose:** Store environment variables (e.g., specific ports, API keys, `JWT_SECRET`) and validation logic to fail fast if configuration is missing.
+
+### 6. Types
+
+TypeScript type definitions and extensions.
+
+- **Express Extensions**: `src/types/express.d.ts` extends the Express Request interface to include:
+  - `req.user`: Object containing authenticated user data (id, email, role).
+  - `req.csrfToken`: CSRF token string for validation.
+- **Type Safety**: Ensures TypeScript recognizes custom properties added by middlewares.

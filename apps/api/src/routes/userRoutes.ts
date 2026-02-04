@@ -2,6 +2,7 @@ import express, { Router } from "express";
 import { body } from "express-validator";
 import { loginForm, getCsrfToken } from "../controllers/userController";
 import { verifyCsrfToken } from "../middleware/csrfMiddleware";
+import { authenticate } from "../middleware/authMiddleware";
 
 const userRouter: Router = express.Router();
 
@@ -19,5 +20,10 @@ userRouter.get("/csrf-token", getCsrfToken);
 
 // 1. CSRF Verification -> 2. Validation -> 3. Controller
 userRouter.post("/login", verifyCsrfToken, loginValidators, loginForm);
+
+userRouter.get("/me", authenticate, ( req, res) => {
+  res.json({ user: req.user });
+});
+
 
 export default userRouter;

@@ -67,6 +67,56 @@ Prepare the system for sending transactional emails (verification, reset passwor
 
 ---
 
-## Phase 2: Authentication (Future)
+## Phase 2: Authentication & Robust Security ✅ COMPLETED
 
-_To be defined after Phase 1 completion._
+**Goal:** Implement stateless authentication with JWT and enhance security with session management.
+
+### Step 1: JWT Infrastructure
+
+- [x] Create `src/utils/jwt.ts` with centralized token signing and verification.
+- [x] Configure `JWT_SECRET` and expiration times from environment variables.
+- [x] Implement secure JWT storage in `httpOnly` cookies with `secure` and `sameSite: 'lax'` flags.
+
+### Step 2: Authentication Middleware
+
+- [x] Create `src/middleware/authMiddleware.ts`.
+- [x] Implement `authenticate` middleware:
+  - Extract JWT from `token` cookie.
+  - Verify signature using `jsonwebtoken`.
+  - Inject `user` object (id, email, role) into Express Request.
+  - Return 401 error for invalid/expired tokens.
+
+### Step 3: Type Extensions
+
+- [x] Update `src/types/express.d.ts` to extend Express Request interface:
+  - Add `user` property for authenticated user data.
+  - Add `csrfToken` property for CSRF validation.
+
+### Step 4: Authentication Endpoints
+
+- [x] Implement `POST /api/v1/auth/login`:
+  - Validate credentials.
+  - Generate JWT and set in `httpOnly` cookie.
+  - Rotate CSRF token to prevent Session Fixation.
+  - Return success response with new CSRF token.
+- [x] Implement `GET /api/v1/auth/me`:
+  - Protected route using `authenticate` middleware.
+  - Return current user's identity (id, email, role).
+
+### Step 5: Route Protection
+
+- [x] Apply `authenticate` middleware to protected routes.
+- [x] Ensure validation rules are at route level (not in controllers).
+- [x] Test protected endpoints with valid and invalid tokens.
+
+### Step 6: Postman Automation
+
+- [x] Configure Post-response scripts to auto-capture `csrfToken`.
+- [x] Set up dynamic headers with environment variables.
+- [x] Document testing flow for developers.
+
+---
+
+## Phase 3: Advanced Features (Future)
+
+_To be defined: Password reset, Email verification, Role-based access control (RBAC), Refresh tokens, etc._

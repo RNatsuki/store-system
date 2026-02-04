@@ -1,6 +1,6 @@
 # Security & Authentication
 
-This document outlines the security measures implemented in the API, specifically focusing on CSRF protection.
+This document outlines the security measures implemented in the API, focusing on **CSRF protection** and **JWT-based authentication** with stateless session management following 2026 standards.
 
 ## CSRF Protection
 
@@ -18,33 +18,186 @@ The logic is segmented into three specialized functions in `src/middleware/csrfM
 
 1.**HttpOnly Cookie**: The server sets a `csrfToken` cookie (not accessible to JS). 2. **CSRF Header**: The client sends the token value in the `x-csrf-token` header. 3. **Verification**: The `verifyCsrfToken` middleware ensures they match before allowing the request to proceed.
 
+---
+
+## JWT Authentication (Session Management)
+
+We implement **stateless authentication** using JSON Web Tokens (JWT) stored securely in `httpOnly` cookies.
+
+### Implementation Details
+
+#### 1. Token Generation (`utils/jwt.ts`)
+
+Centralized helper for JWT operations:
+
+```typescript
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET!;
+const JWT_EXPIRATION = process.env.JWT_EXPIRATION || '7d';
+
+export const signToken = (payload: object) => {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRATION });
+};
+
+export const verifyToken = (token: string) => {
+  return jwt.verify(token, JWT_SECRET);
+};
+```
+
+#### 2. Secure Storage
+
+- **Cookie Type**: `httpOnly` (not accessible to JavaScript, prevents XSS).
+- **Secure Flag**: Enabled in production (requires HTTPS).
+- **SameSite**: Set to `'lax'` to mitigate CSRF attacks while allowing navigation.
+- **Expiration**: Configurable via `JWT_EXPIRATION` environment variable.
+
+#### 3. Authentication Middleware (`middleware/authMiddleware.ts`)
+
+The "gatekeeper" of protected routes:
+
+```typescript
+import { Request, Response, NextFunction } from 'express';
+import { verifyToken } from '../utils/jwt';
+
+export const authenticate = (req: Request, res: Response, next: NextFunction) => {
+  const token = req.cookies.token;
+
+  if (!token) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+
+  try {
+    const decoded = verifyToken(token) as { id: string; email: string; role: string };
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+};
+```
+
+**Flow**:
+1. Extract `token` cookie from request.
+2. Verify JWT signature using `JWT_SECRET`.
+3. Inject `user` object into Express Request.
+4. Block access if token is invalid or expired.
+
+#### 4. Type Safety (`types/express.d.ts`)
+
+Extend Express Request interface for TypeScript:
+
+```typescript
+declare namespace Express {
+  export interface Request {
+    user?: {
+      id: string;
+      email: string;
+      role: string;
+    };
+    csrfToken?: string;
+  }
+}
+```
+
+### Protected Routes
+
+Apply the `authenticate` middleware to routes requiring authentication:
+
+```typescript
+import { Router } from 'express';
+import { authenticate } from '../middleware/authMiddleware';
+import { getCurrentUser } from '../controllers/authController';
+
+const router = Router();
+
+// Public route
+router.post('/login', loginController);
+
+// Protected route
+router.get('/me', authenticate, getCurrentUser);
+
+export default router;
+```
+
+### Login Flow
+
+**Endpoint**: `POST /api/v1/auth/login`
+
+**Steps**:
+1. Validate credentials using `express-validator` rules at route level.
+2. Verify user exists and email is verified.
+3. Generate JWT with user payload (id, email, role).
+4. Set JWT in `httpOnly` cookie.
+5. Rotate CSRF token to prevent Session Fixation.
+6. Return success response with new CSRF token.
+
+**Response**:
+```json
+{
+  "message": "Login successful",
+  "csrfToken": "new-csrf-token-value",
+  "user": {
+    "id": "user-id",
+    "email": "user@example.com",
+    "role": "USER"
+  }
+}
+```
+
+---
+
 ## Development & Testing (Postman)
 
 To facilitate API testing without a frontend, we use Postman scripts:
 
-1.**Auto-Capture**: A Global Post-response script captures the `csrfToken` from the response body of `GET /auth/csrf-token` or valid login responses.
-`javascript
-    // Postman Tests tab
-    var jsonData = pm.response.json();
-    if (jsonData.csrfToken) {
-      pm.environment.set("csrfToken", jsonData.csrfToken);
-    }
-    ` 2. **Dynamic Header**: Requests validation via the `x-csrf-token` header set to `{{csrfToken}}`.
+1. **Auto-Capture**: A Global Post-response script captures the `csrfToken` from the response body of `GET /auth/csrf-token` or valid login responses.
+   ```javascript
+   // Postman Tests tab
+   var jsonData = pm.response.json();
+   if (jsonData.csrfToken) {
+     pm.environment.set("csrfToken", jsonData.csrfToken);
+   }
+   ```
+2. **Dynamic Header**: Requests include the `x-csrf-token` header set to `{{csrfToken}}`.
+3. **Cookie Handling**: Postman automatically manages cookies, including the `token` cookie for JWT.
 
-### Authentication Flow
+### Complete Authentication Flow
 
-Since the frontend cannot read the `httpOnly` cookie directly, it must first **fetch** the token value from the server before making any state-changing requests (POST, PUT, DELETE).
+#### Client Initialization
 
-#### 1. Fetch the Token
+1. **Fetch CSRF Token**: Before making any requests, fetch the CSRF token.
+   - **Endpoint**: `GET /api/v1/auth/csrf-token`
+   - **Response**: `{ "csrfToken": "..." }`
 
-Make a `GET` request to the token endpoint. The server will return the token in the response body.
+2. **Store CSRF Token**: Save the token in application state (e.g., Vue ref, React state).
 
-- **Endpoint**: `GET /api/v1/auth/csrf-token`
-- **Response**: `{ "csrfToken": "..." }`
+#### Login Flow
 
-#### 2. Send in Headers
+1. **Submit Credentials**: Send login request with CSRF token in header.
+   - **Endpoint**: `POST /api/v1/auth/login`
+   - **Headers**: `x-csrf-token: <token>`
+   - **Body**: `{ "email": "...", "password": "..." }`
 
-Include the token in the `x-csrf-token` header for your login or mutation requests.
+2. **Receive JWT**: Server validates credentials and returns:
+   - **Cookie**: `token` (httpOnly JWT)
+   - **Response Body**: New `csrfToken` and user data
+
+3. **Update CSRF Token**: Replace the stored CSRF token with the new rotated value.
+
+#### Authenticated Requests
+
+1. **Include CSRF Header**: All mutation requests must include `x-csrf-token`.
+2. **JWT Cookie Automatic**: Browser automatically sends the `token` cookie with each request.
+3. **Server Validation**: 
+   - `authenticate` middleware validates JWT.
+   - `verifyCsrfToken` validates CSRF header.
+
+#### Protected Route Access
+
+- **Endpoint**: `GET /api/v1/auth/me`
+- **Requirements**: Valid JWT in cookie (no CSRF needed for GET)
+- **Response**: Current user's identity
 
 ### Frontend Example (Vue.js)
 

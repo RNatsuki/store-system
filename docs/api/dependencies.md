@@ -6,16 +6,16 @@ To maintain consistency with the monorepo and database package, the following de
 
 These packages are used in the runtime environment.
 
-| Package             | Purpose                                        |
-| :------------------ | :--------------------------------------------- |
-| `express`           | Web framework                                  |
-| `cookie-parser`     | Parse Cookie header and populate `req.cookies` |
-| `jsonwebtoken`      | JWT generation and verification                |
-| `nodemailer`        | Email sending (SMTP)                           |
-| `express-validator` | Request validation                             |
-| `cors`              | Cross-Origin Resource Sharing enablement       |
-| `helmet`            | Security headers                               |
-| `@store-system/db`  | Internal package for database access           |
+| Package             | Purpose                                                                                          |
+| :------------------ | :----------------------------------------------------------------------------------------------- |
+| `express`           | Web framework                                                                                    |
+| `cookie-parser`     | Parse Cookie header and populate `req.cookies` (required for JWT stored in httpOnly cookies)    |
+| `jsonwebtoken`      | JWT generation and verification (Session management with stateless authentication)               |
+| `nodemailer`        | Email sending (SMTP)                                                                             |
+| `express-validator` | Request validation (applied as route-level middleware)                                           |
+| `cors`              | Cross-Origin Resource Sharing enablement                                                         |
+| `helmet`            | Security headers                                                                                 |
+| `@store-system/db`  | Internal package for database access                                                             |
 
 ## Development Dependencies
 
