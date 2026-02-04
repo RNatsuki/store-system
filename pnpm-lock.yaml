@@ -72,9 +72,6 @@ importers:
       '@types/cookie-parser':
         specifier: ^1.4.10
         version: 1.4.10(@types/express@5.0.6)
-      '@types/jsonwebtoken':
-        specifier: ^9.0.10
-        version: 9.0.10
       bcrypt:
         specifier: ^6.0.0
         version: 6.0.0
@@ -103,6 +100,9 @@ importers:
       '@types/express':
         specifier: ^5.0.6
         version: 5.0.6
+      '@types/jsonwebtoken':
+        specifier: ^9.0.10
+        version: 9.0.10
       '@types/node':
         specifier: ^20.11.0
         version: 20.19.30
