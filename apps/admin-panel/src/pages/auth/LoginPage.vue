@@ -16,10 +16,11 @@ const isLoading = computed(() => authStore.loading);
 const error = computed(() => authStore.error);
 </script>
 
+
 <template>
   <AuthLayout>
     <div class="login-page">
-      <h1>Login</h1>
+      <h1 class="font-bold mt-10">Login</h1>
       <form @submit.prevent="login">
         <div class="form-group">
           <label for="email">Email</label>
