@@ -48,21 +48,31 @@ export const verifyCsrfToken = (
   res: Response,
   next: NextFunction,
 ) => {
+  console.log('[verifyCsrfToken] Verificando CSRF token');
+  console.log('[verifyCsrfToken] Método:', req.method);
+  console.log('[verifyCsrfToken] Ruta:', req.path);
+
   const protectedMethods = ["POST", "PUT", "DELETE", "PATCH"];
 
   if (!protectedMethods.includes(req.method)) {
+    console.log('[verifyCsrfToken] Método no protegido, pasando...');
     return next();
   }
 
   const tokenFromCookie = req.cookies[CSRF_COOKIE_NAME];
   const tokenFromRequest = req.headers[CSRF_HEADER_NAME] || req.body._csrf;
 
+  console.log('[verifyCsrfToken] Token de cookie:', tokenFromCookie);
+  console.log('[verifyCsrfToken] Token de header:', tokenFromRequest);
+
   if (!tokenFromCookie || tokenFromCookie !== tokenFromRequest) {
+    console.log('[verifyCsrfToken] CSRF INVÁLIDO - Bloqueando');
     return res.status(403).json({
       errors: [{ msg: "Forbidden: Invalid or missing CSRF token" }],
     });
   }
 
+  console.log('[verifyCsrfToken] CSRF válido, continuando...');
   next();
 };
 

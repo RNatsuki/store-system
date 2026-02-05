@@ -3,8 +3,9 @@ import dotenv from "dotenv";
 import chalk from "chalk";
 import cookieParser from "cookie-parser";
 import { prisma } from "@store-system/db";
-import { csrfMiddleware, verifyCsrfToken } from "./middleware/csrfMiddleware";
+import { csrfMiddleware } from "./middleware/csrfMiddleware";
 import userRouter from "./routes/userRoutes";
+import { employeeRoutes } from "./routes/employeeRoutes";
 
 dotenv.config();
 
@@ -13,11 +14,11 @@ const app: express.Application = express();
 // middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
 
+app.use(cookieParser());
 // csrf middleware
 app.use(csrfMiddleware);
-app.use(verifyCsrfToken);
+
 
 // connect to database
 async function connectDB() {
@@ -30,6 +31,8 @@ connectDB().catch((error) => {
 
 // routes
 app.use("/api/v1/auth", userRouter);
+app.use("/api/v1/employees", employeeRoutes);
+
 
 // start server
 const port = process.env.PORT || 3000

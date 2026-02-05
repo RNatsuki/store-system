@@ -23,7 +23,6 @@ dotenv.config();
  *
  * @remarks
  * - The token payload is not encrypted, only signed
- * - Do not include sensitive information in the payload
  * - Requires JWT_SECRET environment variable to be set
  */
 export const signToken =(id:string, role:string, email:string):string =>{

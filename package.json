@@ -20,7 +20,7 @@
     "type-check": "turbo run type-check",
     "clean": "turbo run clean",
     "install:all": "pnpm install",
-    "dev:admin": "pnpm --filter @store-system/admin-panel dev",
+    "dev:admin": "pnpm --filter @store-system/admin-panel dev --port 4321",
     "dev:api": "pnpm --filter @store-system/api dev",
     "dev:store": "pnpm --filter @store-system/store-front dev",
     "dev:warehouse": "pnpm --filter @store-system/warehouse-app dev",
