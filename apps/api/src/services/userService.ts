@@ -33,7 +33,7 @@ export async function loginUserService(
     }
 
     return Result.ok({
-      msg: "Login successful",
+      msg: "Access granted",
       user: {
         email: user.email,
         role: user.role,
