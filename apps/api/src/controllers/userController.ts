@@ -17,36 +17,31 @@ export const loginForm = async (req: Request, res: Response) => {
 
   const { email, password } = req.body;
 
-  try {
     const result = await loginUserService(email, password);
 
-    if (!result.isSuccess) {
-      const error = result.getError();
-      return res.status(error.code).json({
-        message: error.message,
-        csrfToken: res.locals.csrfToken,
-      });
-    }
+    result.fold(
+      ({ user, msg }) => {
+        const token = signToken(user.id, user.role, user.email);
 
-    const { user, msg } = result.getValue();
-    const token = signToken(user.id, user.role, user.email);
+        res.cookie("token", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          maxAge: 24 * 60 * 60 * 1000,
+        });
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 24 * 60 * 60 * 1000,
-    });
+        return res.status(200).json({
+          msg: msg,
+          user,
+          csrfToken: res.locals.csrfToken,
+        });
+      },
+      (error) =>
+        res
+          .status(error.code)
+          .json({ message: error.message, csrfToken: res.locals.csrfToken }),
+    );
 
-    return res.status(200).json({
-      msg: msg,
-      user,
-      csrfToken: res.locals.csrfToken,
-    });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ msg: "Internal Server Error" });
-  }
 };
 
 export const getCsrfToken = (req: Request, res: Response) => {

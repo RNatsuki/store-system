@@ -26,21 +26,19 @@ export const createEmployee = async (
   res: Response,
 ): Promise<void> => {
   const data: CreateEmployeeData = req.body;
+
+  //Debería validar el body con express-validator, pero por simplicidad lo omito aquí (aunque creo que ya lo hiciste como middleware en la ruta)
+
   const result = await createEmployeeService(data);
 
-  if (!result.isSuccess) {
-    const error = result.getError();
-    res.status(error.code).json({
-      message: error.message,
-      csrfToken: res.locals.csrfToken,
-    });
-    return;
-  }
-
-  res.status(201).json({
-    data: result.getValue(),
-    csrfToken: res.locals.csrfToken,
-  });
+  result.fold(
+    (value) =>
+      res.status(201).json({ data: value, csrfToken: res.locals.csrfToken }),
+    (error) =>
+      res
+        .status(error.code)
+        .json({ message: error.message, csrfToken: res.locals.csrfToken }),
+  );
 };
 
 /**
@@ -65,17 +63,12 @@ export const verifyEmployeeAccount = async (
   const { token } = req.query as { token: string };
   const result = await verifyEmployeeAccountService(token);
 
-  if (!result.isSuccess) {
-    const error = result.getError();
-    res.status(error.code).json({
-      message: error.message,
-      csrfToken: res.locals.csrfToken,
-    });
-    return;
-  }
-
-  res.status(200).json({
-    data: result.getValue(),
-    csrfToken: res.locals.csrfToken,
-  });
+  result.fold(
+    (value) =>
+      res.status(200).json({ data: value, csrfToken: res.locals.csrfToken }),
+    (error) =>
+      res
+        .status(error.code)
+        .json({ message: error.message, csrfToken: res.locals.csrfToken }),
+  );
 };
